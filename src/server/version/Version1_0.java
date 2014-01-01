@@ -13,7 +13,7 @@ public class Version1_0 implements VersionHandler {
 	
 	@Override
 	public boolean keepAlive() {
-		String value = headers.get("Connection"); 
+		String value = headers.get("connection"); 
 		if (value != null && value.contains("keep-alive"))
 			return true;
 		return false;

@@ -6,7 +6,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-
+/**
+ * Main Web Server class. Handles HTTP requests.
+ * Supports persistent connections for both HTTP version 1.0 and 1.1.
+ *
+ * TODO(cmihail): add dynamic configuration, like changing persistent connection timeout, etc).
+ *
+ * @author cmihail
+ */
 public class WebServer {
 	private static final Logger log = Logger.getLogger(WebServer.class.getName());
 	
@@ -27,8 +34,6 @@ public class WebServer {
 		}
 	}
 	
-	// TODO mention that there might be methods for dynamic configuration,
-	// like changing persistent connection timeout, etc
 	/**
 	 * @param port the port on which the server listens for connections
 	 */
@@ -48,7 +53,7 @@ public class WebServer {
 		log.info("Start server on port: " + port);
 
 		while (true) {
-			executor.submit(new RequestHandler(serverSocket.accept(),
+			executor.submit(new ConnectionHandler(serverSocket.accept(),
 					Constants.DEFAULT_PERSISTENT_CONNECTION_TIMEOUT));
 		}
 	}

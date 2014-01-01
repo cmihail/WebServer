@@ -18,8 +18,16 @@ import server.version.Version1_0;
 import server.version.Version1_1;
 import server.version.VersionHandler;
 
+/**
+ * Defines an abstract implementation of a request.
+ * Processes headers and contains common code for most of the requests.
+ * Also contains abstract methods that subclasses should implement 
+ * 
+ * TODO(cmihail): add support for multiple line headers (see RFC 2616, Section 2.2)
+ * 
+ * @author cmihail
+ */
 public abstract class GenericRequest implements Request {
-	// TODO requests are case-insensitive, add this
 	private static final Logger log = Logger.getLogger(GenericRequest.class.getName());
 	
 	private final Map<String, String> headers = new LinkedHashMap<String, String>();
@@ -29,19 +37,16 @@ public abstract class GenericRequest implements Request {
 	private final String uri;
 	
 	protected GenericRequest(User user, BufferedReader reader, OutputStream outputStream,
-			String uri, HttpVersion version) throws IOException {
+			String uri, HttpVersion version) throws IOException, InvalidRequestException {
 		this.reader = reader;
-		this.outputStream = outputStream; // TODO maybe writer directly
+		this.outputStream = outputStream;
 		this.uri = uri;
 		
 		String str;
 		do {
 			str = reader.readLine();
 			if (str == null) {
-				log.warning("Invalid request");
-				// TODO should return invalid request
-				versionHandler = null;
-				return;
+				throw new InvalidRequestException("Problem at reading headers");
 			}
 			
 			log.info("New header for " + user + ": " + str);
@@ -52,8 +57,8 @@ public abstract class GenericRequest implements Request {
 				continue;
 			}
 			
-			// TODO see if same header value can be on multiple lines
-			headers.put(strSplit[0], strSplit[1]);
+			// Headers are case insensitive.
+			headers.put(strSplit[0].toLowerCase(), strSplit[1].toLowerCase());
 		} while (!"".equals(str));
 		
 		switch (version) {
@@ -69,6 +74,54 @@ public abstract class GenericRequest implements Request {
 	}
 	
 	/**
+	 * @param uri a URI to process
+	 * @param headers the request headers
+	 * @return the result of the URI processing
+	 */
+	protected abstract Result processUri(String uri, Map<String, String> headers);
+
+	/**
+	 * @param reader the socket reader
+	 * @param outputStream the socket output stream
+	 * @param result the result obtained using method processUri
+	 * @throws IOException
+	 */
+	protected abstract void processBody(BufferedReader reader, OutputStream outputStream, Result result)
+			throws IOException;
+	
+	@Override
+	public void process() throws IOException {
+		if (versionHandler == null)
+			return;
+		
+		Result result = processUri(uri, headers);
+		Writer writer = new OutputStreamWriter(outputStream);
+		
+		writer.append(versionHandler.getVersion() + " " + result.getStatusCode() +
+				Constants.CRLF);
+		
+		writeHeaders(writer, versionHandler.getVersionDependentHeaders());
+		writeHeaders(writer, result.getNewHeaders());
+		writer.append(Constants.CRLF);
+		writer.flush();
+		
+		processBody(reader, outputStream, result);
+	}
+
+	@Override
+	public boolean keepAlive() {
+		return (versionHandler != null) && versionHandler.keepAlive();
+	}
+	
+	private void writeHeaders(Writer writer, Map<String, String> headers) throws IOException {
+		for (Entry<String, String> header : headers.entrySet()) {
+			writer.append(header.getKey() + ": " + header.getValue() + Constants.CRLF);
+		}
+	}
+	
+	/**
+	 * Helper class for subclasses that implement {@link GenericRequest}.
+	 * 
 	 * @author cmihail
 	 */
 	protected class Result {
@@ -99,48 +152,6 @@ public abstract class GenericRequest implements Request {
 
 		protected File getFile() {
 			return file;
-		}
-	}
-	
-	/**
-	 * @param uri
-	 * @param headers
-	 * @return
-	 */
-	protected abstract Result processUri(String uri, Map<String, String> headers);
-
-	/**
-	 * @param reader
-	 * @param outputStream
-	 * @param result
-	 * @throws IOException
-	 */
-	protected abstract void processBody(BufferedReader reader, OutputStream outputStream, Result result)
-			throws IOException;
-	
-	@Override
-	public void process() throws IOException {
-		Result result = processUri(uri, headers);
-		Writer writer = new OutputStreamWriter(outputStream);
-		
-		writer.append(versionHandler.getVersion() + " " + result.getStatusCode() +
-				Constants.CRLF);
-		
-		writeHeaders(writer, versionHandler.getVersionDependentHeaders());
-		writeHeaders(writer, result.getNewHeaders());
-		writer.flush();
-		
-		processBody(reader, outputStream, result);
-	}
-
-	@Override
-	public boolean keepAlive() {
-		return versionHandler.keepAlive();
-	}
-	
-	private void writeHeaders(Writer writer, Map<String, String> headers) throws IOException {
-		for (Entry<String, String> header : headers.entrySet()) {
-			writer.append(header.getKey() + ": " + header.getValue() + Constants.CRLF);
 		}
 	}
 }

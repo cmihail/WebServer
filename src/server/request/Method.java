@@ -9,6 +9,5 @@ public enum Method {
 	TRACE,
 	OPTIONS,
 	CONNECT,
-	PATCH,
-	INVALID;
+	PATCH;
 }

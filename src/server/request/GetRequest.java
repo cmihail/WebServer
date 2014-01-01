@@ -1,7 +1,6 @@
 package server.request;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +15,7 @@ import server.version.HttpVersion;
 public class GetRequest extends HeadRequest {
 	
 	public GetRequest(User user, BufferedReader reader, OutputStream outputStream,
-			String uri, HttpVersion version) throws IOException {
+			String uri, HttpVersion version) throws IOException, InvalidRequestException {
 		super(user, reader, outputStream, uri, version);
 	}
 
@@ -30,8 +29,11 @@ public class GetRequest extends HeadRequest {
 		
 		if (result.getFile().isDirectory()) {
 			Writer writer = new OutputStreamWriter(outputStream);
-			String dirContent = getDirectoryContent(result.getFile(), result.getUri());
+			String dirContent =
+					FileProcessor.getDirectoryContentAsHtml(result.getFile(), result.getUri());
 			writer.write(dirContent.toCharArray());
+			
+			writer.flush();
 			return;
 		}
 		
@@ -47,20 +49,5 @@ public class GetRequest extends HeadRequest {
 		
 		outputStream.flush();
 	}
-	
-	private String getDirectoryContent(File file, String uri) {
-		StringBuilder dirContent = new StringBuilder("<html><head><title>Index of ");
-		dirContent.append(uri);
-		dirContent.append("</title></head><body><h1>Index of ");
-		dirContent.append(uri);
-		dirContent.append("</h1><hr><pre>");
-		
-		File[] files = file.listFiles();
-        for (File subfile : files) {
-        	dirContent.append(" <a href=\"" + subfile.getPath() + "\">" + subfile.getPath() + "</a>\n");
-        }
-        dirContent.append("<hr></pre></body></html>");
-        
-        return dirContent.toString();
-	}
+
 }

@@ -5,12 +5,19 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.logging.Logger;
 
+import server.request.InvalidRequest;
 import server.request.Request;
 import server.request.RequestFactory;
+import server.request.StatusCode;
 import server.user.User;
 
-public class RequestHandler implements Runnable {
-	private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
+/**
+ * Handle a HTTP request.
+ * 
+ * @author cmihail
+ */
+public class ConnectionHandler implements Runnable {
+	private static final Logger log = Logger.getLogger(ConnectionHandler.class.getName());
 	
 	private Socket clientSocket;
 	private int timeout;
@@ -19,7 +26,7 @@ public class RequestHandler implements Runnable {
 	 * @param socket the client socket
 	 * @param timeout the timeout after the socket must be closed
 	 */
-	public RequestHandler(Socket socket, int timeout) {
+	public ConnectionHandler(Socket socket, int timeout) {
 		clientSocket = socket;
 		this.timeout = timeout;
 	}
@@ -42,14 +49,20 @@ public class RequestHandler implements Runnable {
 				log.info("Finish request for " + user);
 				
 				if (!request.keepAlive()) {
-					clientSocket.close(); // TODO might use Request Timeout (see error code 408)
 					log.info("Close connection for " + user);
 					break;
 				}
 			}
 		} catch (SocketTimeoutException e) {
 			log.info("Connection for " + user + " has reached the timeout limit");
-
+			// TODO write tests for this (also test if clientSocket closes)
+			try {
+				Request request =
+						new InvalidRequest(StatusCode._408, clientSocket.getOutputStream());
+				request.process();
+			} catch (IOException e1) {
+				log.warning("Connection for " + user + " has an error: " + e.getMessage());
+			}
 		} catch (IOException e) {
 			log.warning("Connection for " + user + " has an error: " + e.getMessage());
 		} finally {

@@ -13,7 +13,7 @@ public class Version1_1 implements VersionHandler {
 	
 	@Override
 	public boolean keepAlive() {
-		String value = headers.get("Connection"); 
+		String value = headers.get("connection"); 
 		if (value != null && value.contains("close"))
 			return false;
 		return true;
@@ -21,11 +21,11 @@ public class Version1_1 implements VersionHandler {
 
 	@Override
 	public Map<String, String> getVersionDependentHeaders() {
+		// TODO Host header is necessary in 1.1
 		Map<String, String> headers = new LinkedHashMap<String, String>();
 		if (!keepAlive())
 			headers.put("Connection", "close");
 		return headers;
-		// TODO Host header is necessary in 1.1
 	}
 	
 	@Override

@@ -14,7 +14,7 @@ import server.version.HttpVersion;
 public class HeadRequest extends GenericRequest {
 
 	public HeadRequest(User user, BufferedReader reader, OutputStream outputStream,
-			String uri, HttpVersion version) throws IOException {
+			String uri, HttpVersion version) throws IOException,InvalidRequestException {
 		super(user, reader, outputStream, uri, version);
 	}
 
@@ -24,19 +24,22 @@ public class HeadRequest extends GenericRequest {
 		File file = null;
 		Map<String, String> newHeaders = new LinkedHashMap<String, String>();
 		try {
-			file = FileSanitizer.getFile(uri);
+			file = FileProcessor.getFile(uri);
 			
 			if (file != null && file.exists() && !file.isHidden()) {
 				code = StatusCode._200;
 				newHeaders.put("Content-Length", Long.toString(file.length()));
-				// TODO maybe test for directory
-				newHeaders.put("Content-Type", ContentType.getContentType(uri).toString());
+				
+				// Directory is listed as a HTML file.
+				ContentType type = file.isDirectory() ?
+						ContentType.HTML :  ContentType.getContentType(uri); 
+				newHeaders.put("Content-Type", type.toString());
 			} else {
 				code = StatusCode._404;
 				newHeaders.put("Content-Length", "0");
 			}
 		} catch (AccessDeniedException e) {
-			code = StatusCode._404; // TODO maybe forbidden instead
+			code = StatusCode._403;
 			newHeaders.put("Content-Length", "0");
 		}
 		
