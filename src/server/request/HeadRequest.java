@@ -8,12 +8,12 @@ import java.nio.file.AccessDeniedException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import server.user.User;
+import server.client.Client;
 import server.version.HttpVersion;
 
 public class HeadRequest extends GenericRequest {
 
-	public HeadRequest(User user, BufferedReader reader, OutputStream outputStream,
+	public HeadRequest(Client user, BufferedReader reader, OutputStream outputStream,
 			String uri, HttpVersion version) throws IOException,InvalidRequestException {
 		super(user, reader, outputStream, uri, version);
 	}

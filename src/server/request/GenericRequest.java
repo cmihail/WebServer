@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import server.Constants;
-import server.user.User;
+import server.client.Client;
 import server.version.HttpVersion;
 import server.version.Version1_0;
 import server.version.Version1_1;
@@ -31,13 +31,16 @@ public abstract class GenericRequest implements Request {
 	private static final Logger log = Logger.getLogger(GenericRequest.class.getName());
 	
 	private final Map<String, String> headers = new LinkedHashMap<String, String>();
-	private final VersionHandler versionHandler;
+	private final Client client;
 	private final BufferedReader reader;
 	private final OutputStream outputStream;
 	private final String uri;
+	private final VersionHandler versionHandler;
 	
-	protected GenericRequest(User user, BufferedReader reader, OutputStream outputStream,
+	
+	protected GenericRequest(Client client, BufferedReader reader, OutputStream outputStream,
 			String uri, HttpVersion version) throws IOException, InvalidRequestException {
+		this.client = client;
 		this.reader = reader;
 		this.outputStream = outputStream;
 		this.uri = uri;
@@ -49,7 +52,7 @@ public abstract class GenericRequest implements Request {
 				throw new InvalidRequestException("Problem at reading headers");
 			}
 			
-			log.info("New header for " + user + ": " + str);
+			log.info("New header for " + client + ": " + str);
 			
 			String[] strSplit = str.split(":\\s*");
 			// Ignore invalid header lines or new line.
@@ -115,7 +118,10 @@ public abstract class GenericRequest implements Request {
 	
 	private void writeHeaders(Writer writer, Map<String, String> headers) throws IOException {
 		for (Entry<String, String> header : headers.entrySet()) {
-			writer.append(header.getKey() + ": " + header.getValue() + Constants.CRLF);
+			String headerStr = header.getKey() + ": " + header.getValue(); 
+			writer.append(headerStr + Constants.CRLF);
+
+			log.info("Output header for " + client + ": " + headerStr);
 		}
 	}
 	

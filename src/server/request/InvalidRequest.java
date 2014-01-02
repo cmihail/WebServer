@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.logging.Logger;
 
 import server.Constants;
 import server.version.HttpVersion;
@@ -16,6 +17,8 @@ import server.version.HttpVersion;
  */
 public class InvalidRequest implements Request {
 
+	private static final Logger log = Logger.getLogger(InvalidRequest.class.getName());
+	
 	private Writer writer;
 	private StatusCode code;
 	
@@ -30,9 +33,12 @@ public class InvalidRequest implements Request {
 	
 	@Override
 	public void process() throws IOException {
-		 writer.write(HttpVersion.HTTP_1_1.toString() + " " + code + Constants.CRLF);
-		 writer.write("Connection: close" + Constants.CRLF + Constants.CRLF);
-		 writer.flush();
+		String request =  HttpVersion.HTTP_1_1.toString() + " " + code + Constants.CRLF +
+				"Connection: close" + Constants.CRLF;
+		writer.write(request + Constants.CRLF);
+		writer.flush();
+		
+		log.info(request);
 	}
 
 	@Override

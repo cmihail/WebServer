@@ -10,8 +10,6 @@ import java.util.logging.Logger;
  * Main Web Server class. Handles HTTP requests.
  * Supports persistent connections for both HTTP version 1.0 and 1.1.
  *
- * TODO(cmihail): add dynamic configuration, like changing persistent connection timeout, etc).
- *
  * @author cmihail
  */
 public class WebServer {
@@ -19,7 +17,9 @@ public class WebServer {
 	
 	private final ExecutorService executor;
 	private final int port;
+
 	private ServerSocket serverSocket = null;
+	private int timeout = Constants.DEFAULT_PERSISTENT_CONNECTION_TIMEOUT;
 	
 	public class InvalidPortException extends Exception {
 		private static final long serialVersionUID = 1L;
@@ -49,13 +49,25 @@ public class WebServer {
 		
 	}
 	
+	/**
+	 * Run the server in an infinite loop that waits for new connections.
+	 * New connections are processed in new threads.
+	 *
+	 * @throws IOException
+	 */
 	public void run() throws IOException {
 		log.info("Start server on port: " + port);
 
 		while (true) {
-			executor.submit(new ConnectionHandler(serverSocket.accept(),
-					Constants.DEFAULT_PERSISTENT_CONNECTION_TIMEOUT));
+			executor.submit(new ConnectionHandler(serverSocket.accept(), timeout));
 		}
+	}
+	
+	/**
+	 * @param timeout the new persistent connection timeout
+	 */
+	public void setPersistentConnectionTimeout(int timeout) {
+		this.timeout = timeout;
 	}
 	
 	/**

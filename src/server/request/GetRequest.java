@@ -9,12 +9,12 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import server.Constants;
-import server.user.User;
+import server.client.Client;
 import server.version.HttpVersion;
 
 public class GetRequest extends HeadRequest {
 	
-	public GetRequest(User user, BufferedReader reader, OutputStream outputStream,
+	public GetRequest(Client user, BufferedReader reader, OutputStream outputStream,
 			String uri, HttpVersion version) throws IOException, InvalidRequestException {
 		super(user, reader, outputStream, uri, version);
 	}

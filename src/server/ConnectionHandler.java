@@ -5,11 +5,11 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.logging.Logger;
 
+import server.client.Client;
 import server.request.InvalidRequest;
 import server.request.Request;
 import server.request.RequestFactory;
 import server.request.StatusCode;
-import server.user.User;
 
 /**
  * Handle a HTTP request.
@@ -35,41 +35,40 @@ public class ConnectionHandler implements Runnable {
 	public void run() {
 		// We don't care if there are users with same ids due to thread ids.
 		// User might be used for authentication, but we don't really care.
-		User user = new User();
+		Client client = new Client();
 		try {
-			log.info("New connection from " + user);
+			log.info("New connection from " + client);
 			clientSocket.setSoTimeout(timeout);
 			
 			while (!clientSocket.isClosed()) {
-				log.info("Process request for " + user);
+				log.info("Process request for " + client);
 				
-				Request request = RequestFactory.create(user, clientSocket);
+				Request request = RequestFactory.create(client, clientSocket);
 				request.process();
 				
-				log.info("Finish request for " + user);
+				log.info("Finish request for " + client);
 				
 				if (!request.keepAlive()) {
-					log.info("Close connection for " + user);
+					log.info("Close connection for " + client);
 					break;
 				}
 			}
 		} catch (SocketTimeoutException e) {
-			log.info("Connection for " + user + " has reached the timeout limit");
-			// TODO write tests for this (also test if clientSocket closes)
+			log.info("Connection for " + client + " has reached the timeout limit");
 			try {
 				Request request =
 						new InvalidRequest(StatusCode._408, clientSocket.getOutputStream());
 				request.process();
 			} catch (IOException e1) {
-				log.warning("Connection for " + user + " has an error: " + e.getMessage());
+				log.warning("Connection for " + client + " has an error: " + e.getMessage());
 			}
 		} catch (IOException e) {
-			log.warning("Connection for " + user + " has an error: " + e.getMessage());
+			log.warning("Connection for " + client + " has an error: " + e.getMessage());
 		} finally {
 			try {
 				clientSocket.close();
 			} catch (IOException e) {
-				log.warning("Connection for " + user + " has an error: " + e.getMessage());
+				log.warning("Connection for " + client + " has an error: " + e.getMessage());
 			}			
 		}
 	}

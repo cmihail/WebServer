@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Set;
 
-public class Headers implements HttpRequest {
+public class HeadersTest implements HttpRequestTest {
 	
 	String request;
 	Set<String> expectedLines;
 	
-	Headers(String request, Set<String> expectedLines) {
+	HeadersTest(String request, Set<String> expectedLines) {
 		this.request = request;
 		this.expectedLines = expectedLines;
 	}
@@ -24,8 +24,6 @@ public class Headers implements HttpRequest {
 		
 		String str = reader.readLine();
 		while (str != null && !"".equals(str)) {
-			System.out.println(str); // TODO del
-			
 			assertTrue(expectedLines.contains(str));
 			expectedLines.remove(str);
 			

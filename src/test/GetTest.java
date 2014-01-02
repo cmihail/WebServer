@@ -13,12 +13,12 @@ import java.util.Set;
 import server.Constants;
 import server.request.FileProcessor;
 
-public class Get extends Headers {
+public class GetTest extends HeadersTest {
 
 	private File file;
 	private String filename;
 	
-	public Get(String request, Set<String> expectedLines, File file, String filename) {
+	public GetTest(String request, Set<String> expectedLines, File file, String filename) {
 		super(request, expectedLines);
 		this.filename = filename;
 		this.file = file;
