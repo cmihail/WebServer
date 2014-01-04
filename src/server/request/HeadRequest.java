@@ -3,30 +3,35 @@ package server.request;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.Writer;
 import java.nio.file.AccessDeniedException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import server.client.Client;
-import server.version.HttpVersion;
+import server.request.version.HttpVersion;
 
+/**
+ * A HEAD request. See RFC 2616, section 9.4.
+ *  
+ * @author cmihail
+ */
 public class HeadRequest extends GenericRequest {
 
-	public HeadRequest(Client user, BufferedReader reader, OutputStream outputStream,
+	public HeadRequest(Client user, BufferedReader reader, Writer writer,
 			String uri, HttpVersion version) throws IOException,InvalidRequestException {
-		super(user, reader, outputStream, uri, version);
+		super(user, reader, writer, uri, version);
 	}
 
 	@Override
-	protected Result processUri(String uri, Map<String, String> headers) {
+	protected ResponseHeader processUri(String uri, Map<String, String> headers) {
 		StatusCode code;	
 		File file = null;
 		Map<String, String> newHeaders = new LinkedHashMap<String, String>();
 		try {
 			file = FileProcessor.getFile(uri);
 			
-			if (file != null && file.exists() && !file.isHidden()) {
+			if (file.exists() && !file.isHidden()) {
 				code = StatusCode._200;
 				newHeaders.put("Content-Length", Long.toString(file.length()));
 				
@@ -43,11 +48,11 @@ public class HeadRequest extends GenericRequest {
 			newHeaders.put("Content-Length", "0");
 		}
 		
-		return new Result(uri, code, newHeaders, file);
+		return new ResponseHeader(code, newHeaders);
 	}
 
 	@Override
-	protected void processBody(BufferedReader reader, OutputStream outputStream, Result result)
+	protected void processBody(BufferedReader reader, Writer writer, ResponseHeader response)
 			throws IOException {
 		// No need to process body for "HEAD".
 	}

@@ -74,6 +74,8 @@ public class Runner {
 	}
 	
 	/**
+	 * Construct a request with the host header inside.
+	 *
 	 * @param head the head of the request
 	 * @return the full request
 	 */

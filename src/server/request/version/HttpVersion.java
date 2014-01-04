@@ -1,4 +1,4 @@
-package server.version;
+package server.request.version;
 
 public enum HttpVersion {
 	HTTP_1_0("HTTP/1.0"),

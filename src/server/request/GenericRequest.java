@@ -1,10 +1,7 @@
 package server.request;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -13,10 +10,10 @@ import java.util.logging.Logger;
 
 import server.Constants;
 import server.client.Client;
-import server.version.HttpVersion;
-import server.version.Version1_0;
-import server.version.Version1_1;
-import server.version.VersionHandler;
+import server.request.version.HttpVersion;
+import server.request.version.Version1_0;
+import server.request.version.Version1_1;
+import server.request.version.VersionHandler;
 
 /**
  * Defines an abstract implementation of a request.
@@ -24,6 +21,9 @@ import server.version.VersionHandler;
  * Also contains abstract methods that subclasses should implement 
  * 
  * TODO(cmihail): add support for multiple line headers (see RFC 2616, Section 2.2)
+ * TODO(cmihail): ignores all headers that doesn't know how to process, even if some or necessary;
+ * 				  should return "501 (Not Implemented)" for the ones that are necessary;
+ * 				  this should be taken in consideration in next versions (see RFC for more info)
  * 
  * @author cmihail
  */
@@ -33,21 +33,19 @@ public abstract class GenericRequest implements Request {
 	private final Map<String, String> headers = new LinkedHashMap<String, String>();
 	private final Client client;
 	private final BufferedReader reader;
-	private final OutputStream outputStream;
+	private final Writer writer;
 	private final String uri;
 	private final VersionHandler versionHandler;
 	
-	
-	protected GenericRequest(Client client, BufferedReader reader, OutputStream outputStream,
+	protected GenericRequest(Client client, BufferedReader reader, Writer writer,
 			String uri, HttpVersion version) throws IOException, InvalidRequestException {
 		this.client = client;
 		this.reader = reader;
-		this.outputStream = outputStream;
+		this.writer = writer;
 		this.uri = uri;
 		
-		String str;
-		do {
-			str = reader.readLine();
+		String str = reader.readLine();
+		while (!"".equals(str)) {
 			if (str == null) {
 				throw new InvalidRequestException("Problem at reading headers");
 			}
@@ -57,12 +55,14 @@ public abstract class GenericRequest implements Request {
 			String[] strSplit = str.split(":\\s*");
 			// Ignore invalid header lines or new line.
 			if (strSplit.length != 2) {
-				continue;
+				throw new InvalidRequestException("Invalid header line");
 			}
 			
 			// Headers are case insensitive.
 			headers.put(strSplit[0].toLowerCase(), strSplit[1].toLowerCase());
-		} while (!"".equals(str));
+			
+			str = reader.readLine();
+		}
 		
 		switch (version) {
 		case HTTP_1_0:
@@ -77,38 +77,60 @@ public abstract class GenericRequest implements Request {
 	}
 	
 	/**
+	 * Processes a URI. headers parameter contains the HTTP headers from the client.
+	 * ResponseHeader contains the status code and the headers necessary to write to the client.
+	 * Subclasses should memorize in own members all the information needed to process
+	 * the body either at this step or in the constructor. processBody() method is
+	 * not obligated to provide all information needed for processing, but only the minimal.
+	 * 
+	 * Does not need to process HTTP version dependent headers.
+	 * If necessary, create a specialized request that doesn't extend {@link GenericRequest} or
+	 * that overrides process() method.
+	 * 
 	 * @param uri a URI to process
 	 * @param headers the request headers
 	 * @return the result of the URI processing
 	 */
-	protected abstract Result processUri(String uri, Map<String, String> headers);
+	protected abstract ResponseHeader processUri(String uri, Map<String, String> headers);
 
 	/**
+	 * Processes the response body (either read from client or write to the client).
+	 * Result argument is what processUri() method returned. It contains all necessary
+	 * info to process the body without needing to rely on external members or methods.
+	 *
 	 * @param reader the socket reader
-	 * @param outputStream the socket output stream
+	 * @param writer the socket writer
 	 * @param result the result obtained using method processUri
 	 * @throws IOException
 	 */
-	protected abstract void processBody(BufferedReader reader, OutputStream outputStream, Result result)
+	protected abstract void processBody(BufferedReader reader, Writer writer, ResponseHeader response)
 			throws IOException;
 	
 	@Override
 	public void process() throws IOException {
 		if (versionHandler == null)
 			return;
+
+		ResponseHeader versionResponse = versionHandler.getVersionDependentResponse();
+		if (versionResponse.getStatusCode() != null) {
+			writer.append(versionHandler.getVersion() + " " + versionResponse.getStatusCode() +
+					Constants.CRLF);
+			writeHeaders(writer, versionResponse.getHeaders());
+			writer.append(Constants.CRLF);
+			writer.flush();
+			return;
+		}
 		
-		Result result = processUri(uri, headers);
-		Writer writer = new OutputStreamWriter(outputStream);
-		
-		writer.append(versionHandler.getVersion() + " " + result.getStatusCode() +
+		ResponseHeader response = processUri(uri, headers);
+		writer.append(versionHandler.getVersion() + " " + response.getStatusCode() +
 				Constants.CRLF);
-		
-		writeHeaders(writer, versionHandler.getVersionDependentHeaders());
-		writeHeaders(writer, result.getNewHeaders());
+		 
+		writeHeaders(writer, versionResponse.getHeaders());
+		writeHeaders(writer, response.getHeaders());
 		writer.append(Constants.CRLF);
 		writer.flush();
 		
-		processBody(reader, outputStream, result);
+		processBody(reader, writer, response);
 	}
 
 	@Override
@@ -122,42 +144,6 @@ public abstract class GenericRequest implements Request {
 			writer.append(headerStr + Constants.CRLF);
 
 			log.info("Output header for " + client + ": " + headerStr);
-		}
-	}
-	
-	/**
-	 * Helper class for subclasses that implement {@link GenericRequest}.
-	 * 
-	 * @author cmihail
-	 */
-	protected class Result {
-		private final String uri;
-		private final StatusCode statusCode;
-		private final Map<String, String> newHeaders;
-		private final File file;
-		
-		protected Result(String uri, StatusCode statusCode,
-				Map<String, String> newHeaders, File file) {
-			this.uri = uri;
-			this.statusCode = statusCode;
-			this.newHeaders = newHeaders;
-			this.file = file;
-		}
-
-		protected String getUri() {
-			return uri;
-		}
-		
-		protected StatusCode getStatusCode() {
-			return statusCode;
-		}
-
-		protected Map<String, String> getNewHeaders() {
-			return newHeaders;
-		}
-
-		protected File getFile() {
-			return file;
 		}
 	}
 }

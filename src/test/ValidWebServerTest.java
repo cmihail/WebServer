@@ -1,6 +1,7 @@
 package test;
 
 import java.io.File;
+import java.nio.file.AccessDeniedException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import org.junit.Test;
 
 import server.Constants;
 import server.WebServer;
+import server.request.FileProcessor;
 
 /**
  * Test web server basic functionality.
@@ -61,6 +63,21 @@ public class ValidWebServerTest {
 	}
 	
 	@Test(timeout = 500)
+	public void testInvalidHeaderRequest() {
+		Set<String> expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.1 400 Bad Request");
+		expectedLines.add("Connection: close");
+		
+		String req = Runner.constructRequest("HEAD /index.html HTTP/1.1" + Constants.CRLF +
+				"Invalid header syntax");
+		Runner.runClient(new HeadersTest(req ,new HashSet<String>(expectedLines)), PORT);
+		
+		req = Runner.constructRequest("PUT /index.html.new HTTP/1.1" + Constants.CRLF +
+				"Invalid : header : syntax");
+		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+	}
+	
+	@Test(timeout = 500)
 	public void testInvalidHttpVersionRequest() {
 		Set<String> expectedLines = new HashSet<String>();
 		expectedLines.add("HTTP/1.1 501 Not Implemented");
@@ -71,6 +88,27 @@ public class ValidWebServerTest {
 		
 		req = Runner.constructRequest("OPTIONS /index.html HTTP/1.0");
 		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+	}
+	
+	@Test(timeout = 500)
+	public void testNoHostRequestHttpVersion1_1() {
+		Set<String> expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.1 400 Bad Request");
+		expectedLines.add("Connection: close");
+		
+		String req = "HEAD /index.html HTTP/1.1" + Constants.CRLF + Constants.CRLF;
+		Runner.runClient(new HeadersTest(req, new HashSet<String>(expectedLines)), PORT);
+	}
+	
+	@Test(timeout = 500)
+	public void testNoHostRequestHttpVersion1_0() {
+		Set<String> expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.0 200 OK"); // For HTTP1.0 it's OK to not have Host.
+		expectedLines.add("Content-Length: 79");
+		expectedLines.add("Content-Type: text/html");
+		
+		String req = "HEAD /index.html HTTP/1.0" + Constants.CRLF + Constants.CRLF;
+		Runner.runClient(new HeadersTest(req, new HashSet<String>(expectedLines)), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -94,6 +132,26 @@ public class ValidWebServerTest {
 	}
 	
 	@Test(timeout = 500)
+	public void testNoContentLengthPutRequest() {
+		Set<String> expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.1 204 No Content");
+		expectedLines.add("Content-Length: 0");
+		
+		String req = Runner.constructRequest("PUT /index.html.new HTTP/1.1");
+		Runner.runClient(new PutTest(req, expectedLines), PORT);
+	}
+	
+	@Test(timeout = 500)
+	public void testOverwriteDirPutRequest() {
+		Set<String> expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.1 403 Forbidden");
+		expectedLines.add("Content-Length: 0");
+		
+		String req = Runner.constructRequest("PUT /innerFolder HTTP/1.1");
+		Runner.runClient(new PutTest(req, expectedLines), PORT);
+	}
+	
+	@Test(timeout = 500)
 	public void testForbiddenPathRequest() {
 		Set<String> expectedLines = new HashSet<String>();
 		expectedLines.add("HTTP/1.1 403 Forbidden");
@@ -104,32 +162,32 @@ public class ValidWebServerTest {
 	}
 	
 	@Test(timeout = 500)
-	public void testHeadRequest() {
+	public void testHeadRequest() throws AccessDeniedException {
 		Set<String> expectedLines = new HashSet<String>();
 		expectedLines.add("HTTP/1.1 200 OK");
 		expectedLines.add("Content-Type: text/css");
-		expectedLines.add("Content-Length: " + new File(Constants.ROOT, "common.css").length());
+		expectedLines.add("Content-Length: " + FileProcessor.getFile("common.css").length());
 		
 		String req = Runner.constructRequest("head /common.css HTTP/1.1");
 		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
 	}
 	
 	@Test(timeout = 500)
-	public void testGetFileRequest() {
-		File file = new File(Constants.ROOT, "index.html");
+	public void testGetFileRequest() throws AccessDeniedException {
+		File file = FileProcessor.getFile("index.html");
 		
 		Set<String> expectedLines = new HashSet<String>();
 		expectedLines.add("HTTP/1.1 200 OK");
 		expectedLines.add("Content-Type: text/html");
 		expectedLines.add("Content-Length: " + file.length());
- 		
-		String req = Runner.constructRequest("GET /index.html   HTTP/1.1");
-		Runner.runClient(new GetTest(req, expectedLines, file, "index.html"), PORT);
+		
+		String req = Runner.constructRequest("GET index.html   HTTP/1.1");
+		Runner.runClient(new GetTest(req, expectedLines, "index.html"), PORT);
 	}
 	
 	@Test(timeout = 500)
-	public void testGetDirectoryRequest() {
-		File file = new File(Constants.ROOT, "");
+	public void testGetDirectoryRequest()throws AccessDeniedException {
+		File file = FileProcessor.getFile("/");
 		
 		Set<String> expectedLines = new HashSet<String>();
 		expectedLines.add("HTTP/1.0 200 OK");
@@ -137,6 +195,27 @@ public class ValidWebServerTest {
 		expectedLines.add("Content-Length: " + file.length());
  		
 		String req = Runner.constructRequest("get / HTTP/1.0");
-		Runner.runClient(new GetTest(req, expectedLines, file, "/"), PORT);
+		Runner.runClient(new GetTest(req, expectedLines, "/"), PORT);
+	}
+	
+	@Test(timeout = 500)
+	public void testPutRequest() throws AccessDeniedException {
+		File originFile = FileProcessor.getFile("/index.html");
+		File newFile = FileProcessor.getFile("/index.html.new");
+		newFile.delete(); // makes sure the file doesn't exist
+		
+		Set<String> expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.1 201 Created");
+		expectedLines.add("Content-Length: 0");
+		
+		String req = Runner.constructRequest("PUT /index.html.new HTTP/1.1" + Constants.CRLF +
+				"Content-Length: " + originFile.length());
+		Runner.runClient(new PutTest(req, expectedLines, originFile, newFile), PORT);
+		
+		expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.1 204 No Content");
+		expectedLines.add("Content-Length: 0");
+		
+		Runner.runClient(new PutTest(req, expectedLines, originFile, newFile), PORT);
 	}
 }

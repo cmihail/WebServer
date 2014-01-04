@@ -4,34 +4,39 @@ import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Writer;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.util.Set;
 
 import server.Constants;
 import server.request.FileProcessor;
 
+/**
+ * Tests a Get request.
+ *
+ * @author cmihail
+ */
 public class GetTest extends HeadersTest {
 
-	private File file;
 	private String filename;
 	
-	public GetTest(String request, Set<String> expectedLines, File file, String filename) {
+	public GetTest(String request, Set<String> expectedLines, String filename) {
 		super(request, expectedLines);
 		this.filename = filename;
-		this.file = file;
 	}
 
 	@Override
 	public void run(BufferedReader reader, Writer writer) throws IOException {
 		super.run(reader, writer);
 
-		char[] buffer = new char[Constants.FILE_BUFFER_SIZE];
+		File file = FileProcessor.getFile(filename);
 		
 		// Test directory.
 		if (file.isDirectory()) {
+			char[] buffer = new char[Constants.FILE_BUFFER_SIZE];
+
 			String result = FileProcessor.getDirectoryContentAsHtml(file, filename);
 			int readUntilNow = 0;
 			int read;
@@ -47,23 +52,15 @@ public class GetTest extends HeadersTest {
 		
 		
 		// Test normal file.
-		InputStream fileInputStream = null;
-		try {
-			fileInputStream = new FileInputStream(file);
-
-			byte[] bufferExpected = new byte[Constants.FILE_BUFFER_SIZE];
-			while (fileInputStream.available() > 0) {
-				int readExpected = fileInputStream.read(bufferExpected);
-				int read = 0;
-				while (read < readExpected) {
-					read = reader.read(buffer, read, readExpected - read);	
-				}
-				
-				assertArrayEquals(bufferExpected, new String(buffer).getBytes());
-			}
-		} finally {
-			if (fileInputStream != null)
-				fileInputStream.close();
+		byte[] bytes = Files.readAllBytes(
+				FileSystems.getDefault().getPath(file.getPath()));
+		char[] expectedBytes = new char[bytes.length];
+		
+		int read = 0;
+		while (read < expectedBytes.length) {
+			read += reader.read(expectedBytes, read, expectedBytes.length - read);	
 		}
+		
+		assertArrayEquals(bytes, new String(expectedBytes).getBytes());
 	}
 }

@@ -17,13 +17,25 @@ public class HeadersTest implements HttpRequestTest {
 		this.expectedLines = expectedLines;
 	}
 	
-	@Override
-	public void run(BufferedReader reader, Writer writer) throws IOException {
+	/**
+	 * Override this in children if request has a body too.
+	 * Call this method first in the overridden method so the request is written
+	 * the first.
+	 */
+	protected void write(Writer writer) throws IOException  {
 		writer.write(request);
 		writer.flush();
+	}
+	
+	@Override
+	public void run(BufferedReader reader, Writer writer) throws IOException {
+		write(writer);
 		
 		String str = reader.readLine();
 		while (str != null && !"".equals(str)) {
+			if (!expectedLines.contains(str))
+				System.out.println("\nUnexpected header: " + str);
+
 			assertTrue(expectedLines.contains(str));
 			expectedLines.remove(str);
 			

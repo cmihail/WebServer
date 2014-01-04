@@ -1,6 +1,7 @@
 package server;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.logging.Logger;
@@ -57,7 +58,8 @@ public class ConnectionHandler implements Runnable {
 			log.info("Connection for " + client + " has reached the timeout limit");
 			try {
 				Request request =
-						new InvalidRequest(StatusCode._408, clientSocket.getOutputStream());
+						new InvalidRequest(StatusCode._408,
+								new OutputStreamWriter(clientSocket.getOutputStream()));
 				request.process();
 			} catch (IOException e1) {
 				log.warning("Connection for " + client + " has an error: " + e.getMessage());

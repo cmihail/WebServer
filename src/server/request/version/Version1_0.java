@@ -1,8 +1,13 @@
-package server.version;
+package server.request.version;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import server.request.ResponseHeader;
+
+/**
+ * @author cmihail
+ */
 public class Version1_0 implements VersionHandler {
 
 	private Map<String, String> headers = new LinkedHashMap<String, String>();
@@ -20,11 +25,11 @@ public class Version1_0 implements VersionHandler {
 	}
 
 	@Override
-	public Map<String, String> getVersionDependentHeaders() {
-		Map<String, String> headers = new LinkedHashMap<String, String>();
+	public ResponseHeader getVersionDependentResponse() {
+		Map<String, String> responseHeaders = new LinkedHashMap<String, String>();
 		if (keepAlive())
-			headers.put("Connection", "keep-alive");
-		return headers;
+			responseHeaders.put("Connection", "keep-alive");
+		return new ResponseHeader(responseHeaders);
 	}
 
 	@Override

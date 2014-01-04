@@ -1,13 +1,11 @@
 package server.request;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.logging.Logger;
 
 import server.Constants;
-import server.version.HttpVersion;
+import server.request.version.HttpVersion;
 
 /**
  * Creates an invalid request with a given HTTP status code.
@@ -26,8 +24,8 @@ public class InvalidRequest implements Request {
 	 * @param code the invalid request HTTP status code
 	 * @param outputStream the stream were to write the response
 	 */
-	public InvalidRequest(StatusCode code, OutputStream outputStream) {
-		writer = new OutputStreamWriter(outputStream);
+	public InvalidRequest(StatusCode code, Writer writer) {
+		this.writer = writer;
 		this.code = code;
 	}
 	
