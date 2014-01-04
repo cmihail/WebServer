@@ -17,19 +17,20 @@ the overhead of thread creation.
 
 Running:
 - import the project inside Eclipse
-- if there are any dependecy problems make sure the *.jar libraries are in the
+- if there are any dependency problems make sure the *.jar libraries are in the
   building path
 - the server can be run by using "server.Main"
 
 Testing:
 - for testing the JUnit framework was used
-- the tests were run using Eclipe; for tests run test.WebServerTestSuite
+- the tests were run using Eclipe; for tests run "test.WebServerTestSuite"
 - it tests server configuration, server responses to both valid and invalid requests
   and persistent connection functionality
 - tests are NOT unit tests, but they test the whole functionality of the server,
   from processing a request to creating the response and also closing the connection
   if necessary; in general they should behave well because the server treats every
-  request in a separate thread, with the exception of the persistent connections
+  request in a separate thread, with the exception of the persistent connections,
+  and the threads do not process any common data
 
 Limitations:
 - there is no support for multiple line headers (see RFC 2616, Section 2.2);
