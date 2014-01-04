@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.util.logging.Logger;
 
 import server.Constants;
+import server.request.helper.StatusCode;
 import server.request.version.HttpVersion;
 
 /**
@@ -32,8 +33,8 @@ public class InvalidRequest implements Request {
 	@Override
 	public void process() throws IOException {
 		String request =  HttpVersion.HTTP_1_1.toString() + " " + code + Constants.CRLF +
-				"Connection: close" + Constants.CRLF;
-		writer.write(request + Constants.CRLF);
+				"Connection: close";
+		writer.write(request + Constants.CRLF + Constants.CRLF);
 		writer.flush();
 		
 		log.info(request);

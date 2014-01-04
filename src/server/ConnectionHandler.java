@@ -10,10 +10,10 @@ import server.client.Client;
 import server.request.InvalidRequest;
 import server.request.Request;
 import server.request.RequestFactory;
-import server.request.StatusCode;
+import server.request.helper.StatusCode;
 
 /**
- * Handle a HTTP request.
+ * Handle a new connection.
  * 
  * @author cmihail
  */

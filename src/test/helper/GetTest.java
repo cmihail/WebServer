@@ -1,4 +1,4 @@
-package test;
+package test.helper;
 
 import static org.junit.Assert.*;
 
@@ -11,14 +11,14 @@ import java.nio.file.Files;
 import java.util.Set;
 
 import server.Constants;
-import server.request.FileProcessor;
+import server.request.helper.FileProcessor;
 
 /**
  * Tests a Get request.
  *
  * @author cmihail
  */
-public class GetTest extends HeadersTest {
+public class GetTest extends ResponseTest {
 
 	private String filename;
 	

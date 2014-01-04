@@ -1,4 +1,4 @@
-package server.request;
+package server.request.helper;
 
 /**
  * HTTP valid methods. See RFC 2616, section 9.

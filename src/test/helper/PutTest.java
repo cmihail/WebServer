@@ -1,4 +1,4 @@
-package test;
+package test.helper;
 
 import static org.junit.Assert.*;
 
@@ -15,7 +15,7 @@ import java.util.Set;
  * 
  * @author cmihail
  */
-public class PutTest extends HeadersTest {
+public class PutTest extends ResponseTest {
 	
 	private final File originFile;
 	private final File newFile;

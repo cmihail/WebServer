@@ -1,10 +1,13 @@
-package server.request;
+package server.request.helper;
 
 import java.io.File;
 import java.nio.file.AccessDeniedException;
 
 import server.Constants;
 
+/**
+ * @author cmihail
+ */
 public class FileProcessor {
 	/**
 	 * @param filename the file name
@@ -18,8 +21,15 @@ public class FileProcessor {
 			filename = filename.substring(1);
 		return new File(Constants.ROOT, filename);
 	}
-	
-	
+
+	/**
+	 * Get the content of a directory as HTML.
+	 * Should be called only for directories (does not test if file is a directory).
+	 *
+	 * @param file the directory
+	 * @param uri the directory name as received from the client
+	 * @return the directory content as HTML
+	 */
 	public static String getDirectoryContentAsHtml(File file, String uri) {
 		StringBuilder dirContent = new StringBuilder("<html><head><title>Index of ");
 		dirContent.append(uri);

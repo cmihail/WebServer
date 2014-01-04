@@ -10,6 +10,8 @@ import java.util.logging.Logger;
 
 import server.Constants;
 import server.client.Client;
+import server.request.helper.InvalidRequestException;
+import server.request.helper.ResponseHeader;
 import server.request.version.HttpVersion;
 import server.request.version.Version1_0;
 import server.request.version.Version1_1;
@@ -18,7 +20,7 @@ import server.request.version.VersionHandler;
 /**
  * Defines an abstract implementation of a request.
  * Processes headers and contains common code for most of the requests.
- * Also contains abstract methods that subclasses should implement 
+ * Also contains abstract methods that subclasses should implement. 
  * 
  * TODO(cmihail): add support for multiple line headers (see RFC 2616, Section 2.2)
  * TODO(cmihail): ignores all headers that doesn't know how to process, even if some or necessary;
@@ -53,8 +55,7 @@ public abstract class GenericRequest implements Request {
 			log.info("New header for " + client + ": " + str);
 			
 			String[] strSplit = str.split(":\\s*");
-			// Ignore invalid header lines or new line.
-			if (strSplit.length != 2) {
+			if (strSplit.length != 2) { // Ignore invalid header lines.
 				throw new InvalidRequestException("Invalid header line");
 			}
 			
@@ -83,9 +84,9 @@ public abstract class GenericRequest implements Request {
 	 * the body either at this step or in the constructor. processBody() method is
 	 * not obligated to provide all information needed for processing, but only the minimal.
 	 * 
-	 * Does not need to process HTTP version dependent headers.
-	 * If necessary, create a specialized request that doesn't extend {@link GenericRequest} or
-	 * that overrides process() method.
+	 * For HTTP version dependent code: this class does not need to process all HTTP version
+	 * dependent headers. If necessary, create a specialized request that doesn't extend
+	 * {@link GenericRequest} or that overrides process() method.
 	 * 
 	 * @param uri a URI to process
 	 * @param headers the request headers
@@ -95,8 +96,7 @@ public abstract class GenericRequest implements Request {
 
 	/**
 	 * Processes the response body (either read from client or write to the client).
-	 * Result argument is what processUri() method returned. It contains all necessary
-	 * info to process the body without needing to rely on external members or methods.
+	 * Result argument is what processUri() method returned.
 	 *
 	 * @param reader the socket reader
 	 * @param writer the socket writer

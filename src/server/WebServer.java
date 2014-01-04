@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 /**
  * Main Web Server class. Handles HTTP requests.
- * Supports persistent connections for both HTTP version 1.0 and 1.1.
+ * Supports persistent connections for both HTTP versions 1.0 and 1.1.
  *
  * @author cmihail
  */

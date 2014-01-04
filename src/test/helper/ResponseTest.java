@@ -1,4 +1,4 @@
-package test;
+package test.helper;
 
 import static org.junit.Assert.*;
 
@@ -7,18 +7,23 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Set;
 
-public class HeadersTest implements HttpRequestTest {
+/**
+ * Test the basics of an HTTP response.
+ *
+ * @author cmihail
+ */
+public class ResponseTest implements HttpRequestTest {
 	
 	String request;
 	Set<String> expectedLines;
 	
-	HeadersTest(String request, Set<String> expectedLines) {
+	public ResponseTest(String request, Set<String> expectedLines) {
 		this.request = request;
 		this.expectedLines = expectedLines;
 	}
 	
 	/**
-	 * Override this in children if request has a body too.
+	 * Override this in children only if request has a body.
 	 * Call this method first in the overridden method so the request is written
 	 * the first.
 	 */

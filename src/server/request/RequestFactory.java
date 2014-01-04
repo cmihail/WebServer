@@ -9,12 +9,15 @@ import java.net.Socket;
 import java.util.logging.Logger;
 
 import server.client.Client;
+import server.request.helper.InvalidRequestException;
+import server.request.helper.Method;
+import server.request.helper.StatusCode;
 import server.request.version.HttpVersion;
 
 /**
  * Create a {@link Request} using the factory pattern.
- * If a method implementation is outdated, then only one line of code should be changed.
- * More exactly only the class that implements the {@link Request} for that method.
+ * If a {@link Method} implementation is outdated, then only one line of code should be changed.
+ * More exactly, only the class that implements the {@link Request} for that {@link Method}.
  *  
  * @author cmihail
  */

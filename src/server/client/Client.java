@@ -1,10 +1,10 @@
 package server.client;
 
 /**
- * Define a client information.
+ * Defines a client information.
  *
- * Because the server doesn't keep need any client related info for now,
- * this class is used only for logging.
+ * For now, the server doesn't need any client related information,
+ * so this class is used only for logging.
  * 
  * @author cmihail
  */

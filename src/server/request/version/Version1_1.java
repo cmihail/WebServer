@@ -3,10 +3,13 @@ package server.request.version;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import server.request.ResponseHeader;
-import server.request.StatusCode;
+import server.request.helper.ResponseHeader;
+import server.request.helper.StatusCode;
 
 /**
+ * Implements the {@link VersionHandler} for HTTP/1.1 version.
+ * "Host" header is necessary in HTTP/1.1.
+ *
  * @author cmihail
  */
 public class Version1_1 implements VersionHandler {

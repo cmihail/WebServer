@@ -1,4 +1,4 @@
-package server.request;
+package server.request.helper;
 
 /**
  * Status enum maps the HTTP/1.1 available response status codes 
@@ -6,8 +6,6 @@ package server.request;
  * 
  * See https://github.com/dasanjos/java-WebServer/blob/master/src/main/java/com/dasanjos/java/http/Status.java
  * for original file.
- * 
- * @author dasanjos 
  */
 public enum StatusCode {
 	 _100("100 Continue"),
@@ -59,6 +57,6 @@ public enum StatusCode {
 	
     @Override
     public String toString() {
-            return status;
+    	return status;
     }
 }

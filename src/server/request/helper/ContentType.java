@@ -1,4 +1,4 @@
-package server.request;
+package server.request.helper;
 
 /**
  * ContentType enum uses the file extension to loosely map the available content type based on common media types:
@@ -32,7 +32,7 @@ public enum ContentType {
 	}
 	
 	/**
-	 * Should be called only for valid files that are not directory.
+	 * Should be called only for valid files that are not directories.
 	 * Does not test if file exits or not. In case of invalid files will return
 	 * OCTET_STREAM.
 	 * The programmer should make sure the function is called for a valid file.

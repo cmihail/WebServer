@@ -9,8 +9,17 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import server.client.Client;
+import server.request.helper.FileProcessor;
+import server.request.helper.InvalidRequestException;
+import server.request.helper.ResponseHeader;
+import server.request.helper.StatusCode;
 import server.request.version.HttpVersion;
 
+/**
+ * A DELETE request. See RFC 2616, section 9.7.
+ *
+ * @author cmihail
+ */
 public class DeleteRequest extends GenericRequest {
 
 	protected DeleteRequest(Client client, BufferedReader reader,
@@ -26,7 +35,7 @@ public class DeleteRequest extends GenericRequest {
 		
 		try {
 			File file = FileProcessor.getFile(uri);
-			if (!file.exists() || file.isDirectory()) { // Directories can not be removed.
+			if (!file.exists() || file.isDirectory()) { // Folders can not be removed.
 				code = StatusCode._404;
 			} else {
 				file.delete();

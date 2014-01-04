@@ -1,7 +1,7 @@
 package server.request.version;
 
 import server.request.GenericRequest;
-import server.request.ResponseHeader;
+import server.request.helper.ResponseHeader;
 
 /**
  * An HTTP version handler. Necessary for {@link GenericRequest}.
@@ -22,8 +22,7 @@ public interface VersionHandler {
 	boolean keepAlive();
 	
 	/**
-	 * The status code for response header SHOULD be null if everything is OK.
-	 *
+	 * The status code for response header should be null if everything is OK.
 	 * @return the version dependent response header
 	 */
 	ResponseHeader getVersionDependentResponse();

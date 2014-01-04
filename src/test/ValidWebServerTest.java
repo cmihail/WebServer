@@ -14,7 +14,11 @@ import org.junit.Test;
 
 import server.Constants;
 import server.WebServer;
-import server.request.FileProcessor;
+import server.request.helper.FileProcessor;
+import test.helper.GetTest;
+import test.helper.PutTest;
+import test.helper.ResponseTest;
+import test.helper.Runner;
 
 /**
  * Test web server basic functionality.
@@ -44,12 +48,12 @@ public class ValidWebServerTest {
 		expectedLines.add("Connection: close");
 		
 		String req = Runner.constructRequest("INVALID_METHOD /index.html HTTP/1.1");
-		Runner.runClient(new HeadersTest(req, new HashSet<String>(expectedLines)), PORT);
+		Runner.runClient(new ResponseTest(req, new HashSet<String>(expectedLines)), PORT);
 		
 		req = Runner.constructRequest("GET /index.html HTTP/1.1 one_more");
-		Runner.runClient(new HeadersTest(req, new HashSet<String>(expectedLines)), PORT);
+		Runner.runClient(new ResponseTest(req, new HashSet<String>(expectedLines)), PORT);
 
-		Runner.runClient(new HeadersTest(Runner.constructRequest(""), expectedLines), PORT);
+		Runner.runClient(new ResponseTest(Runner.constructRequest(""), expectedLines), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -59,10 +63,10 @@ public class ValidWebServerTest {
 		expectedLines.add("Connection: close");
 		
 		String req = Runner.constructRequest("HEAD /index.html HTTP/1.2");
-		Runner.runClient(new HeadersTest(req ,new HashSet<String>(expectedLines)), PORT);
+		Runner.runClient(new ResponseTest(req ,new HashSet<String>(expectedLines)), PORT);
 		
 		req = Runner.constructRequest("GET /index.html HTTR");
-		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		Runner.runClient(new ResponseTest(req, expectedLines), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -73,11 +77,11 @@ public class ValidWebServerTest {
 		
 		String req = Runner.constructRequest("HEAD /index.html HTTP/1.1" + Constants.CRLF +
 				"Invalid header syntax");
-		Runner.runClient(new HeadersTest(req ,new HashSet<String>(expectedLines)), PORT);
+		Runner.runClient(new ResponseTest(req ,new HashSet<String>(expectedLines)), PORT);
 		
 		req = Runner.constructRequest("PUT /index.html.new HTTP/1.1" + Constants.CRLF +
 				"Invalid : header : syntax");
-		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		Runner.runClient(new ResponseTest(req, expectedLines), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -87,10 +91,10 @@ public class ValidWebServerTest {
 		expectedLines.add("Connection: close");
 		
 		String req = Runner.constructRequest("CONNECT /index.html HTTP/1.1");
-		Runner.runClient(new HeadersTest(req, new HashSet<String>(expectedLines)), PORT);
+		Runner.runClient(new ResponseTest(req, new HashSet<String>(expectedLines)), PORT);
 		
 		req = Runner.constructRequest("OPTIONS /index.html HTTP/1.0");
-		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		Runner.runClient(new ResponseTest(req, expectedLines), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -100,7 +104,7 @@ public class ValidWebServerTest {
 		expectedLines.add("Connection: close");
 		
 		String req = "HEAD /index.html HTTP/1.1" + Constants.CRLF + Constants.CRLF;
-		Runner.runClient(new HeadersTest(req, new HashSet<String>(expectedLines)), PORT);
+		Runner.runClient(new ResponseTest(req, new HashSet<String>(expectedLines)), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -111,7 +115,7 @@ public class ValidWebServerTest {
 		expectedLines.add("Content-Type: text/html");
 		
 		String req = "HEAD /index.html HTTP/1.0" + Constants.CRLF + Constants.CRLF;
-		Runner.runClient(new HeadersTest(req, new HashSet<String>(expectedLines)), PORT);
+		Runner.runClient(new ResponseTest(req, new HashSet<String>(expectedLines)), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -121,7 +125,7 @@ public class ValidWebServerTest {
 		expectedLines.add("Content-Length: 0");
 		
 		String req = Runner.constructRequest("HEAD invalidFile HTTP/1.1");
-		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		Runner.runClient(new ResponseTest(req, expectedLines), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -131,7 +135,7 @@ public class ValidWebServerTest {
 		expectedLines.add("Content-Length: 0");
 		
 		String req = Runner.constructRequest("GET invalidFile HTTP/1.1");
-		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		Runner.runClient(new ResponseTest(req, expectedLines), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -141,7 +145,7 @@ public class ValidWebServerTest {
 		expectedLines.add("Content-Length: 0");
 		
 		String req = Runner.constructRequest("GET .. HTTP/1.1");
-		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		Runner.runClient(new ResponseTest(req, expectedLines), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -172,7 +176,7 @@ public class ValidWebServerTest {
 		expectedLines.add("Content-Length: 0");
 		
 		String req = Runner.constructRequest("DELETE /innerFolder HTTP/1.1");
-		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		Runner.runClient(new ResponseTest(req, expectedLines), PORT);
 		
 		assertTrue(FileProcessor.getFile("/innerFolder").exists());
 	}
@@ -185,7 +189,7 @@ public class ValidWebServerTest {
 		expectedLines.add("Content-Length: " + FileProcessor.getFile("/common.css").length());
 		
 		String req = Runner.constructRequest("head /common.css HTTP/1.1");
-		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		Runner.runClient(new ResponseTest(req, expectedLines), PORT);
 	}
 	
 	@Test(timeout = 500)
@@ -249,7 +253,7 @@ public class ValidWebServerTest {
 		assertTrue(file.exists());
 		
 		String req = Runner.constructRequest("DELETE /newFile HTTP/1.1");
-		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		Runner.runClient(new ResponseTest(req, expectedLines), PORT);
 		
 		assertFalse(file.exists());
 	}

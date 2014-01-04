@@ -3,9 +3,11 @@ package server.request.version;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import server.request.ResponseHeader;
+import server.request.helper.ResponseHeader;
 
 /**
+ * Implements the {@link VersionHandler} for HTTP/1.0 version.
+ *
  * @author cmihail
  */
 public class Version1_0 implements VersionHandler {

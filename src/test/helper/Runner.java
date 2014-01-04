@@ -1,4 +1,4 @@
-package test;
+package test.helper;
 
 import static org.junit.Assert.fail;
 
@@ -13,11 +13,13 @@ import server.Constants;
 import server.WebServer;
 import server.WebServer.InvalidPortException;
 
+/**
+ * @author cmihail
+ */
 public class Runner {
 	
 	/**
 	 * Run a web server in a different thread.
-	 *
 	 * @param port the server port
 	 * @return a reference to the server
 	 */
@@ -75,7 +77,6 @@ public class Runner {
 	
 	/**
 	 * Construct a request with the host header inside.
-	 *
 	 * @param head the head of the request
 	 * @return the full request
 	 */

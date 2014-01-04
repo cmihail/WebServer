@@ -16,8 +16,12 @@ import org.junit.Test;
 
 import server.Constants;
 import server.WebServer;
-import server.request.FileProcessor;
+import server.request.helper.FileProcessor;
 import server.request.version.HttpVersion;
+import test.helper.GetTest;
+import test.helper.HttpRequestTest;
+import test.helper.ResponseTest;
+import test.helper.Runner;
 
 /**
  * Test web server persistent connection functionality.
@@ -58,7 +62,7 @@ public class PersistentConnectionTest {
 					fail();
 				}
 				
-				new HeadersTest("", expectedLines).run(reader, writer);
+				new ResponseTest("", expectedLines).run(reader, writer);
 			}
 		}, PORT);
 	}
@@ -72,15 +76,15 @@ public class PersistentConnectionTest {
 		// No "Connection: keep-alive" header.
 		
 		String req = Runner.constructRequest("HEAD /index.html HTTP/1.0");
-		Runner.runClient(new HeadersTest(req, new HashSet<String>(expectedLines)), PORT);
+		Runner.runClient(new ResponseTest(req, new HashSet<String>(expectedLines)), PORT);
 
 		req = Runner.constructRequest(
 				"head /index.html HTTP/1.0" + Constants.CRLF + "Connection: close");
-		Runner.runClient(new HeadersTest(req, new HashSet<String>(expectedLines)), PORT);
+		Runner.runClient(new ResponseTest(req, new HashSet<String>(expectedLines)), PORT);
 		
 		req = Runner.constructRequest(
 				"HEAD /index.html HTTP/1.0" + Constants.CRLF + "Connection: invalid");
-		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		Runner.runClient(new ResponseTest(req, expectedLines), PORT);
 	}
 
 	@Test (timeout = 500)
@@ -93,7 +97,7 @@ public class PersistentConnectionTest {
 		
 		String req = Runner.constructRequest(
 				"HEAD /index.html HTTP/1.1" + Constants.CRLF + "Connection: close");
-		Runner.runClient(new HeadersTest(req, new HashSet<String>(expectedLines)), PORT);
+		Runner.runClient(new ResponseTest(req, new HashSet<String>(expectedLines)), PORT);
 	}
 	
 	@Test (timeout = 500)
@@ -135,8 +139,8 @@ public class PersistentConnectionTest {
 		expectedLines[2].add("Content-Type: text/css");
 		
 		final HttpRequestTest[] tests = new HttpRequestTest[3];
-		tests[0] = new HeadersTest(requests[0], expectedLines[0]);
-		tests[1] = new HeadersTest(requests[1], expectedLines[1]);
+		tests[0] = new ResponseTest(requests[0], expectedLines[0]);
+		tests[1] = new ResponseTest(requests[1], expectedLines[1]);
 		tests[2] = new GetTest(requests[2], expectedLines[2], "/common.css");
 		
 		Runner.runClient(new HttpRequestTest() {

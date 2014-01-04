@@ -9,10 +9,7 @@ import server.WebServer.InvalidPortException;
  * @author cmihail
  */
 public class Main {
-	
 	private static final Logger log = Logger.getLogger(Main.class.getName());
-	
-	private static final int DEFAULT_PORT = 5000;
 	
 	public static void main(String args[]) {
 		if (args.length > 1) {
@@ -24,7 +21,7 @@ public class Main {
 		if (args.length == 1) {
 			port = Integer.parseInt(args[0]);
 		} else {
-			port = DEFAULT_PORT;
+			port = Constants.DEFAULT_PORT;
 		}
 
 		try {
