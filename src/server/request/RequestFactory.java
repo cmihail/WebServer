@@ -69,6 +69,8 @@ public class RequestFactory {
 				return new GetRequest(client, reader, writer, uri, httpVersion);
 			case PUT:
 				return new PutRequest(client, reader, writer, uri, httpVersion);
+			case DELETE:
+				return new DeleteRequest(client, reader, writer, uri, httpVersion);
 			default:
 				return new InvalidRequest(StatusCode._501, writer);
 			}

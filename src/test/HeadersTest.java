@@ -34,7 +34,7 @@ public class HeadersTest implements HttpRequestTest {
 		String str = reader.readLine();
 		while (str != null && !"".equals(str)) {
 			if (!expectedLines.contains(str))
-				System.out.println("\nUnexpected header: " + str);
+				System.out.println("Unexpected header: <" + str + ">");
 
 			assertTrue(expectedLines.contains(str));
 			expectedLines.remove(str);

@@ -34,31 +34,31 @@ public class PutRequest extends GenericRequest {
 	protected ResponseHeader processUri(String uri, Map<String, String> headers) {
 		StatusCode code;
 		Map<String, String> newHeaders = new LinkedHashMap<String, String>();
-		
+			
 		if (headers.containsKey("content-length")) {
 			try {
 				contentLength = Integer.parseInt(headers.get("content-length"));
+				
+				file = FileProcessor.getFile(uri);
+				if (file.isDirectory()) { // Folders can not be overwritten.
+					code = StatusCode._404;
+				} else if (file.exists()) {
+					code = StatusCode._204;
+				} else {
+					code = StatusCode._201;
+				}
+			} catch (AccessDeniedException e) {
+				code = StatusCode._403;
 			} catch (NumberFormatException e) {
-				// Content-length is necessary
-				return new ResponseHeader(StatusCode._411, newHeaders);
+				// Content-length is necessary.
+				code = StatusCode._411;
 			}
+		} else {
+			// Content-length is necessary.
+			code = StatusCode._411;
 		}
 		
-		try {
-			file = FileProcessor.getFile(uri);
-			if (file.isDirectory()) {
-				code = StatusCode._403; // It is forbidden to overwrite folders.
-			} else if (file.exists()) {
-				code = StatusCode._204;
-			} else {
-				code = StatusCode._201;
-			}
-		} catch (AccessDeniedException e) {
-			code = StatusCode._403;
-		}
-			
 		newHeaders.put("Content-Length", "0");	
-					
 		return new ResponseHeader(code, newHeaders);
 	}
 

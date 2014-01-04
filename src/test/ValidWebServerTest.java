@@ -1,6 +1,9 @@
 package test;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.HashSet;
 import java.util.Set;
@@ -132,26 +135,6 @@ public class ValidWebServerTest {
 	}
 	
 	@Test(timeout = 500)
-	public void testNoContentLengthPutRequest() {
-		Set<String> expectedLines = new HashSet<String>();
-		expectedLines.add("HTTP/1.1 204 No Content");
-		expectedLines.add("Content-Length: 0");
-		
-		String req = Runner.constructRequest("PUT /index.html.new HTTP/1.1");
-		Runner.runClient(new PutTest(req, expectedLines), PORT);
-	}
-	
-	@Test(timeout = 500)
-	public void testOverwriteDirPutRequest() {
-		Set<String> expectedLines = new HashSet<String>();
-		expectedLines.add("HTTP/1.1 403 Forbidden");
-		expectedLines.add("Content-Length: 0");
-		
-		String req = Runner.constructRequest("PUT /innerFolder HTTP/1.1");
-		Runner.runClient(new PutTest(req, expectedLines), PORT);
-	}
-	
-	@Test(timeout = 500)
 	public void testForbiddenPathRequest() {
 		Set<String> expectedLines = new HashSet<String>();
 		expectedLines.add("HTTP/1.1 403 Forbidden");
@@ -162,11 +145,44 @@ public class ValidWebServerTest {
 	}
 	
 	@Test(timeout = 500)
+	public void testNoContentLengthPutRequest() {
+		Set<String> expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.1 411 Length Required");
+		expectedLines.add("Content-Length: 0");
+		
+		String req = Runner.constructRequest("PUT /index.html.new HTTP/1.1");
+		Runner.runClient(new PutTest(req, expectedLines), PORT);
+	}
+	
+	@Test(timeout = 500)
+	public void testOverwriteDirPutRequest() {
+		Set<String> expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.1 404 Not Found");
+		expectedLines.add("Content-Length: 0");
+		
+		String req = Runner.constructRequest("PUT /innerFolder HTTP/1.1" + Constants.CRLF +
+				"Content-Length: 10");
+		Runner.runClient(new PutTest(req, expectedLines), PORT);
+	}
+	
+	@Test (timeout = 500)
+	public void testDeleteDirectoryRequest() throws IOException {
+		Set<String> expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.1 404 Not Found");
+		expectedLines.add("Content-Length: 0");
+		
+		String req = Runner.constructRequest("DELETE /innerFolder HTTP/1.1");
+		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		
+		assertTrue(FileProcessor.getFile("/innerFolder").exists());
+	}
+	
+	@Test(timeout = 500)
 	public void testHeadRequest() throws AccessDeniedException {
 		Set<String> expectedLines = new HashSet<String>();
 		expectedLines.add("HTTP/1.1 200 OK");
 		expectedLines.add("Content-Type: text/css");
-		expectedLines.add("Content-Length: " + FileProcessor.getFile("common.css").length());
+		expectedLines.add("Content-Length: " + FileProcessor.getFile("/common.css").length());
 		
 		String req = Runner.constructRequest("head /common.css HTTP/1.1");
 		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
@@ -202,7 +218,7 @@ public class ValidWebServerTest {
 	public void testPutRequest() throws AccessDeniedException {
 		File originFile = FileProcessor.getFile("/index.html");
 		File newFile = FileProcessor.getFile("/index.html.new");
-		newFile.delete(); // makes sure the file doesn't exist
+		newFile.delete(); // Make sure the file doesn't exist.
 		
 		Set<String> expectedLines = new HashSet<String>();
 		expectedLines.add("HTTP/1.1 201 Created");
@@ -217,5 +233,24 @@ public class ValidWebServerTest {
 		expectedLines.add("Content-Length: 0");
 		
 		Runner.runClient(new PutTest(req, expectedLines, originFile, newFile), PORT);
+		
+		newFile.delete();
+	}
+	
+	@Test (timeout = 500)
+	public void testDeleteRequest() throws IOException {
+		File file = FileProcessor.getFile("/newFile");
+		file.createNewFile();
+		
+		Set<String> expectedLines = new HashSet<String>();
+		expectedLines.add("HTTP/1.1 204 No Content");
+		expectedLines.add("Content-Length: 0");
+		
+		assertTrue(file.exists());
+		
+		String req = Runner.constructRequest("DELETE /newFile HTTP/1.1");
+		Runner.runClient(new HeadersTest(req, expectedLines), PORT);
+		
+		assertFalse(file.exists());
 	}
 }
