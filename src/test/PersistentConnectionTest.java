@@ -119,7 +119,8 @@ public class PersistentConnectionTest {
 	public void persistentConnectionTest(Set<String> commonHeaders, HttpVersion version,
 			String extraRequest) throws AccessDeniedException {
 		final String[] requests = new String[3];
-		requests[0] = Runner.constructRequest("HEAD /index.html " + version + extraRequest);
+		requests[0] = Runner.constructRequest("HEAD /innerFolder/binaryFile " + version +
+				extraRequest);
 		requests[1] = Runner.constructRequest("HEAD /Earth.png " + version + extraRequest);
 		requests[2] = Runner.constructRequest("GET /common.css " + version + extraRequest);
 		
@@ -129,8 +130,9 @@ public class PersistentConnectionTest {
 			expectedLines[i] = new HashSet<String>(commonHeaders);
 		}
 
-		expectedLines[0].add("Content-Length: " + FileProcessor.getFile("/index.html").length());
-		expectedLines[0].add("Content-Type: text/html");
+		expectedLines[0].add("Content-Length: " +
+				FileProcessor.getFile("/innerFolder/binaryFile").length());
+		expectedLines[0].add("Content-Type: application/octet-stream");
 		expectedLines[1].add("Content-Length: " + FileProcessor.getFile("/Earth.png").length());
 		expectedLines[1].add("Content-Type: image/png");
 		
