@@ -8,8 +8,8 @@ import java.nio.file.AccessDeniedException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import server.Constants;
@@ -28,16 +28,16 @@ import test.helper.Runner;
 public class ValidWebServerTest {
 	private static final int PORT = 10000;
 	
-	private WebServer webServer;
+	private static WebServer webServer;
 	
-	@Before
-	public void bringUp() {
+	@BeforeClass
+	public static void bringUp() {
 		webServer = Runner.runServer(PORT);
 		webServer.setPersistentConnectionTimeout(600);
 	}
 	
-	@After
-	public void tearDown() {
+	@AfterClass
+	public static void tearDown() {
 		webServer.close();
 	}
 	

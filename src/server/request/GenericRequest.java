@@ -22,11 +22,6 @@ import server.request.version.VersionHandler;
  * Processes headers and contains common code for most of the requests.
  * Also contains abstract methods that subclasses should implement. 
  * 
- * TODO(cmihail): add support for multiple line headers (see RFC 2616, Section 2.2)
- * TODO(cmihail): ignores all headers that doesn't know how to process, even if some or necessary;
- * 				  should return "501 (Not Implemented)" for the ones that are necessary;
- * 				  this should be taken in consideration in next versions (see RFC for more info)
- * 
  * @author cmihail
  */
 public abstract class GenericRequest implements Request {

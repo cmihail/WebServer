@@ -22,6 +22,9 @@ public class GetTest extends ResponseTest {
 
 	private String filename;
 	
+	/**
+	 * Should be used only on small files as it loads all file bytes into memory.
+	 */
 	public GetTest(String request, Set<String> expectedLines, String filename) {
 		super(request, expectedLines);
 		this.filename = filename;
@@ -49,7 +52,6 @@ public class GetTest extends ResponseTest {
 			
 			return;
 		}
-		
 		
 		// Test normal file.
 		byte[] bytes = Files.readAllBytes(

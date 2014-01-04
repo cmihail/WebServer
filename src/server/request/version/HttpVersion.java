@@ -16,7 +16,7 @@ public enum HttpVersion {
 	}
 	
 	/**
-	 * @param str the HTTO version as string
+	 * @param str the HTTP version as string
 	 * @return HTTP version constant or null if str is invalid
 	 */
 	public static HttpVersion valueOfVersion(String str) {
