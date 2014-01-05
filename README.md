@@ -26,11 +26,11 @@ Testing:
 - the tests were run using Eclipe; for tests run "test.WebServerTestSuite"
 - it tests server configuration, server responses to both valid and invalid requests
   and persistent connection functionality
-- tests are NOT unit tests, but they test the whole functionality of the server,
-  from processing a request to creating the response and also closing the connection
-  if necessary; in general they should behave well because the server treats every
-  request in a separate thread, with the exception of the persistent connections,
-  and the threads do not process any common data
+- tests the whole functionality of the server, from processing a request, to creating
+  the response and also closing the connection if necessary; in general, the tests
+  should behave well because the server treats every request in a separate thread,
+  with the exception of the persistent connections, and the threads do not process
+  any common data
 
 Limitations:
 - there is no support for multiple line headers (see RFC 2616, Section 2.2);
